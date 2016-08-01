@@ -33,6 +33,7 @@ node server.js
 
 Visit [http://localhost:8080](http://localhost:8080)
 
+**Please set up your working environment before the interview (working server, node, npm dependencies), so we don't spend time installing anything.**
 
 Project description
 -------------------
