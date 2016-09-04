@@ -1,11 +1,97 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	<head>
+	  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	  <title>Front-End Challenge</title>
+	</head>
+	<body onload="ajax_get_pizzaJSON()">
 
-  <title>Order good pizza</title>
-</head>
-<body>
-  <h1>It works!</h1>
-</body>
+	  <h1>PIZZA MENU</h1>
+	  <div id="pizza_choices"></div>
+	  <hr />
+	  <h1>ORDER</h1>
+	  <p id="order_sum"><p>
+	  <h2 id="priceTxt">Price: $0</h2>
+	  <button id='btn' onclick="ajax_get_orderJSON()">Order now!</button>
+
+	  <script type="text/javascript">
+		  	function ajax_get_pizzaJSON() {
+		  		var pizza_choices = document.getElementById("pizza_choices");
+		  		var hr = new XMLHttpRequest();
+		  		hr.open("GET", "server/pizzas.json", true);
+		  		hr.onreadystatechange = function() {
+		  			if (hr.readyState == 4 && hr.status == 200) {
+		  				// avoiding "var" to declare data as global in order to access it later (bad practice - need a fix)
+		  				data = JSON.parse(hr.responseText);
+		  				for (var obj in data) {
+		  					// onclick='clicktoOrder() is added via this line
+		  					pizza_choices.innerHTML += 
+		  					"<p><a href='#' onclick='clicktoOrder()'>" + objtoStr(data[obj]) + "</a></p>";
+		  				}
+		  			}
+		  		};
+		  		hr.send(null);
+			    pizza_choices.innerHTML = ""; // Requesting
+		  	}
+
+		  	function objtoStr(obj) {
+		  		var str = "";
+		  		str += obj.name.toUpperCase() + ": " + obj.ingredients.join(", ") + " [$" + obj.price + "]";
+		  		return str;
+		  	}
+
+		  	function clicktoOrder() {
+		  		var order_sum = document.getElementById("order_sum");
+			  	var priceTxt = document.getElementById("priceTxt");
+			  	var price = parseFloat(priceTxt.innerHTML.substring(8)); // 8 is the index of "$"
+				var name = event.target.innerHTML.substring(0, event.target.innerHTML.indexOf(":"));
+		  		for (var obj in data) { 
+		  			if (name == data[obj].name.toUpperCase()) {
+			  			price += data[obj].price;
+			  			priceTxt.innerHTML = "Price: $" + price;
+			  		}
+			  	}
+			  	// onclick='clicktoCancel() is added via this line
+			  	order_sum.innerHTML += "<p><a href='#' onclick='clicktoCancel()'>" + event.target.innerHTML + "</a></p>";
+		  	}
+
+		  	function clicktoCancel() {
+		  		var priceTxt = document.getElementById("priceTxt");
+		  		var price = parseFloat(priceTxt.innerHTML.substring(8)); // 8 is the index of "$"
+		  		var name = event.target.innerHTML.substring(0, event.target.innerHTML.indexOf(":"));
+		  		for (var obj in data) { 
+		  			if (name == data[obj].name.toUpperCase()) {
+		  				price -= data[obj].price;
+		  				priceTxt.innerHTML = "Price: $" + price;
+		  			}
+		  		}
+		  		event.target.remove();
+		  	}
+
+		  	function ajax_get_orderJSON() {
+		  		var order_sum = document.getElementById("order_sum");
+		  		var hr = new XMLHttpRequest();
+		  		hr.open("GET", "server/order.json", true);
+		  		hr.onreadystatechange = function() {
+		  			if (hr.readyState == 4 && hr.status == 200) {
+		  				var priceTxt = document.getElementById("priceTxt");
+		  				var price = parseFloat(priceTxt.innerHTML.substring(8)); // 8 is the index of "$"
+		  				if (price === 0) {
+		  					alert("Please select something before ordering.");
+		  				} else {
+			  				var local_data = JSON.parse(hr.responseText);
+			  				// for now, order.json only show one value for delieveryTime ("x")
+			  				order_sum.innerHTML += 
+				  			"<p id='delivery'>Thank you. Your order will be delivered in " + local_data.deliveryTime + " minutes.</p>";
+				  			document.getElementById("btn").remove();
+				  			document.getElementById("pizza_choices").innerHTML = 
+				  			"<p>You already ordered. Please reload the page to order again.</p>"; // Add a btn to reload the page later
+				  		}
+		  			}
+		  		};
+		  		hr.send(null);
+			    order_sum.innerHTML = ""; // Requesting
+		  	}
+	  </script>
+	</body>
 </html>
